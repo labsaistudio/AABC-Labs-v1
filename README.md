@@ -8,113 +8,85 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 20+](https://img.shields.io/badge/node-20+-green.svg)](https://nodejs.org/)
 [![Solana](https://img.shields.io/badge/Solana-Blockchain-purple.svg)](https://solana.com/)
 
-## 🌟 Overview
+## Overview
 
-AABC Agent is an advanced AI agent framework that combines intelligent automation with comprehensive Solana blockchain operations. Built on top of [Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit), this framework provides both a Python-based AI agent system and a Node.js blockchain bridge for seamless Web3 integration.
+AABC Agent is an advanced AI agent framework that combines intelligent automation with comprehensive Solana blockchain operations. Built on top of [Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit), the framework provides both a Python-based AI agent system and a Node.js blockchain bridge for seamless Web3 integration.
 
-### What Makes AABC Agent Unique
+## Core Blockchain Features
 
-- **Multi-Language Architecture**: Python AI agents with Node.js blockchain bridge
-- **Production Ready**: Built on battle-tested [Sendai's Solana Agent Kit](https://docs.sendai.fun/docs/v2/introduction)
-- **Comprehensive DeFi**: Native support for Jupiter, Raydium, Orca, Meteora, and more
-- **Extensible Design**: Plugin-based architecture for easy customization
+### Token Operations
+- Deploy SPL tokens by Metaplex
+- Transfer assets
+- Balance checks
+- Stake SOL
+- Zk compressed Airdrop by Light Protocol and Helius
+- Bridge tokens across chains using Wormhole
 
-## ✨ Key Features
+### NFTs on 3.Land
+- Create your own collection
+- NFT creation and automatic listing on 3.land
+- List your NFT for sale in any SPL token
+- NFT Management via Metaplex
+  - Collection deployment
+  - NFT minting
+  - Metadata management
+  - Royalty configuration
 
-### 🔗 Blockchain Integration
-- **Solana Network Operations**
-  - Token balance checking (SOL & SPL tokens)
-  - Token transfers and swaps via Jupiter, Raydium, Orca
-  - Token deployment and management with Metaplex
-  - Blinks (Blockchain Links) creation and execution
-  - Stake SOL and interact with validators
-  - NFT minting and collection management
+### DeFi Integration
+- Jupiter Exchange swaps
+- Launch on Pump via PumpPortal
+- Raydium pool creation (CPMM, CLMM, AMMv4)
+- Orca Whirlpool integration
+- Manifest market creation and limit orders
+- Meteora Dynamic AMM, DLMM Pool, and Alpha Vault
+- Openbook market creation
+- Register and Resolve SNS
+- Jito Bundles
+- Pyth Price feeds for fetching Asset Prices
+- Register/resolve Alldomains
+- Perpetuals Trading with Adrena Protocol
+- Drift Vaults, Perps, Lending and Borrowing
+- Cross-chain bridging via deBridge DLN
+- Cross-chain bridging via Wormhole
 
-### 💹 DeFi Protocol Support
-- **DEX Integration**
-  - Jupiter Aggregator for best swap prices
-  - Raydium AMM pools (CPMM, CLMM, AMMv4)
-  - Orca Whirlpool liquidity provision
-  - Meteora DLMM and Alpha Vaults
-  - Manifest limit orders
-- **Advanced Operations**
-  - Token launches via Pump.fun and PumpPortal
-  - Cross-chain bridging with Wormhole and deBridge
-  - Price feeds from Pyth Network
-  - Risk analysis with Rugcheck
-  - Perpetuals trading on Adrena and Drift
+### Solana Blinks
+- Lending by Lulo (Best APR for USDC)
+- Send Arcade Games
+- JupSOL staking
+- Solayer SOL (sSOL) staking
 
-### 🤖 AI Agent Capabilities
-- Multi-step task execution with Claude
-- Tool-based architecture for extensibility
+### Non-Financial Actions
+- Gib Work for registering bounties
+
+### Market Data Integration
+- CoinGecko Pro API integration
+- Real-time token price data
+- Trending tokens and pools
+- Top gainers analysis
+- Token information lookup
+- Latest pool tracking
+
+## AI Integration Features
+
+### Autonomous Agent Capabilities
+- Multi-step task execution
 - Natural language command processing
-- MCP (Model Context Protocol) support
+- Tool-based architecture
+- Context-aware decision making
 - Parallel operation execution
-- Comprehensive error handling and retry logic
 
-## 🚀 Quick Start
+### Crypto Research & Analysis
+- Multi-source data aggregation
+- Price analysis with technical indicators
+- Social sentiment monitoring
+- On-chain data analysis
+- DeFi metrics tracking
+- Risk assessment
 
-### Prerequisites
-
-```bash
-Python 3.11+
-Node.js 20+ (for blockchain bridge)
-```
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/YOUR_ORG/aabc-agent-open-source.git
-cd aabc-agent-open-source
-
-# Install Python dependencies (Agent)
-pip install -r requirements.txt
-
-# Install Node.js dependencies (Solana Bridge)
-cd solana-bridge
-npm install
-cd ..
-
-# Set up environment variables
-cp .env.example .env
-cp solana-bridge/.env.example solana-bridge/.env
-# Edit .env files with your configuration
-```
-
-### Running the Services
-
-```bash
-# Terminal 1: Start Solana Bridge
-cd solana-bridge
-npm start
-# Bridge running on http://localhost:3001
-
-# Terminal 2: Start Agent
-python -m agent.run
-```
-
-### Basic Usage
-
-```python
-from agent.run import AgentRunner
-from agent.prompt import get_system_prompt
-
-# Initialize agent
-agent = AgentRunner(
-    model="claude-sonnet-4",
-    system_prompt=get_system_prompt()
-)
-
-# Execute a crypto research task
-response = await agent.run(
-    "Analyze $SOL token investment potential"
-)
-```
-
-## 📚 Architecture
+## Architecture
 
 ### System Design
 
@@ -175,34 +147,98 @@ aabc-agent-open-source/
 └── blockchain_tools/          # Standalone blockchain tools
 ```
 
-### Technology Stack
+## Quick Start
 
-**AI & Language Models**
-- Anthropic Claude (Sonnet 4) for agent reasoning
-- LangChain for tool orchestration
-- MCP protocol for external integrations
+### Prerequisites
 
-**Blockchain**
-- Solana Web3.js for blockchain interaction
-- Solana Agent Kit for high-level operations
-- Metaplex for NFT/Token standards
+```bash
+Python 3.11+
+Node.js 20+
+Solana CLI (optional)
+```
 
-**Backend**
-- Python 3.11+ with AsyncIO
-- Node.js 20+ with Express
-- RESTful API architecture
+### Installation
 
-**DeFi Protocols**
-- Jupiter Aggregator V6 API
-- Raydium SDK
-- Orca Whirlpools SDK
-- Meteora DLMM
-- Pyth Price Feeds
+```bash
+# Clone the repository
+git clone https://github.com/labsaistudio/aabc-agent-open-source.git
+cd aabc-agent-open-source
 
-### Blockchain Tools
+# Install Python dependencies (Agent)
+pip install -r requirements.txt
 
-#### SolanaBalanceTool
-Check SOL and SPL token balances on Solana blockchain.
+# Install Node.js dependencies (Solana Bridge)
+cd solana-bridge
+npm install
+cd ..
+
+# Set up environment variables
+cp .env.example .env
+cp solana-bridge/.env.example solana-bridge/.env
+# Edit .env files with your configuration
+```
+
+### Running the Services
+
+```bash
+# Terminal 1: Start Solana Bridge
+cd solana-bridge
+npm start
+# Bridge running on http://localhost:3001
+
+# Terminal 2: Start Agent
+python -m agent.run
+```
+
+### Basic Usage
+
+```python
+from agent.run import AgentRunner
+from agent.prompt import get_system_prompt
+
+# Initialize agent
+agent = AgentRunner(
+    model="claude-sonnet-4",
+    system_prompt=get_system_prompt()
+)
+
+# Execute a task
+response = await agent.run(
+    "Check my SOL balance"
+)
+```
+
+## Configuration
+
+### Environment Variables
+
+#### Python Agent (.env)
+```bash
+# AI Model Configuration
+ANTHROPIC_API_KEY=your_anthropic_api_key
+MODEL_NAME=claude-sonnet-4
+
+# Blockchain Bridge
+BLOCKCHAIN_BRIDGE_URL=http://localhost:3001
+```
+
+#### Solana Bridge (solana-bridge/.env)
+```bash
+# Required
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+SOLANA_PRIVATE_KEY=your_base58_private_key
+PORT=3001
+
+# Optional
+HELIUS_API_KEY=your_helius_key
+PINATA_JWT=your_pinata_jwt
+COINGECKO_API_KEY=your_coingecko_key
+```
+
+## Blockchain Tools
+
+### SolanaBalanceTool
+Check SOL and SPL token balances.
 
 ```python
 from blockchain_tools.solana_balance_tool import SolanaBalanceTool
@@ -211,8 +247,8 @@ tool = SolanaBalanceTool()
 result = await tool.get_balance(wallet_address="YOUR_WALLET")
 ```
 
-#### SolanaSwapTool
-Execute token swaps on Solana DEXs (Jupiter, Raydium, Orca).
+### SolanaSwapTool
+Execute token swaps via Jupiter, Raydium, or Orca.
 
 ```python
 from blockchain_tools.solana_swap_tool import SolanaSwapTool
@@ -225,8 +261,8 @@ result = await tool.swap_tokens(
 )
 ```
 
-#### SolanaTokenTool
-Get detailed token information and metadata.
+### SolanaTokenTool
+Get token information and metadata.
 
 ```python
 from blockchain_tools.solana_token_tool import SolanaTokenTool
@@ -235,91 +271,94 @@ tool = SolanaTokenTool()
 result = await tool.get_token_info(token_address="TOKEN_MINT")
 ```
 
-## 🎯 Use Cases
+### SolanaBinksTool
+Create and execute blockchain action links.
 
-### 1. Cryptocurrency Research
 ```python
-# Automatic 6-source parallel analysis
-agent.run("Analyze $WIF investment value")
+from blockchain_tools.solana_blinks_tool import SolanaBinksTool
 
-# Output: Comprehensive report with:
-# - Price trends and technical indicators
-# - Social sentiment score (0-100)
-# - On-chain metrics
-# - Latest news and research
-# - DeFi performance
-# - Investment recommendations
+tool = SolanaBinksTool()
+result = await tool.create_blink(
+    action="transfer",
+    token="SOL",
+    amount=0.1
+)
 ```
 
-### 2. Token Operations
+## API Reference
+
+See [Solana Bridge README](solana-bridge/README.md) for complete API documentation.
+
+## Use Cases
+
+### Token Operations
 ```python
 # Check balance
 agent.run("What's my SOL balance?")
 
+# Transfer tokens
+agent.run("Send 1 SOL to ADDRESS")
+
 # Swap tokens
 agent.run("Swap 1 SOL to USDC")
-
-# Get token info
-agent.run("Get information about $BONK token")
 ```
 
-### 3. Blinks Creation
+### NFT Operations
 ```python
-# Create a Blink for token transfer
-agent.run("Create a Blink to transfer 0.1 SOL to ADDRESS")
+# Create NFT collection
+agent.run("Create an NFT collection named 'My Art'")
 
-# Shareable URL for one-click blockchain action
+# Mint NFT
+agent.run("Mint an NFT with image at path/to/image.png")
 ```
 
-## 🔧 Configuration
+### DeFi Operations
+```python
+# Stake SOL
+agent.run("Stake 10 SOL")
 
-### Environment Variables
+# Add liquidity
+agent.run("Add liquidity to SOL-USDC pool")
+
+# Launch token
+agent.run("Launch a token named TEST on Pump.fun")
+```
+
+## Development
+
+### Project Structure
+- `agent/` - Core AI agent implementation
+- `solana-bridge/` - Blockchain API server
+- `blockchain_tools/` - Reusable blockchain utilities
+
+### Adding New Tools
+1. Create tool file in `agent/tools/`
+2. Implement tool interface
+3. Register in `agent/run.py`
+4. Add corresponding bridge endpoint if needed
+
+## Testing
 
 ```bash
-# .env.example
+# Test Python agent
+pytest tests/
 
-# Blockchain Configuration
-SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-SOLANA_WALLET_PRIVATE_KEY=your_private_key
-
-# AI Model Configuration
-ANTHROPIC_API_KEY=your_anthropic_api_key
-MODEL_NAME=claude-sonnet-4
-
-# Optional: Additional Data Sources
-MESSARI_API_KEY=your_messari_key
-DELPHI_API_KEY=your_delphi_key
+# Test Solana Bridge
+cd solana-bridge
+npm test
 ```
 
-## 🔌 Powered By
+## Security
 
-This project is built on top of several excellent open-source projects:
+- Never commit private keys or `.env` files
+- Use environment variables for sensitive data
+- Implement proper authentication in production
+- Review transaction parameters before execution
+- Set appropriate slippage limits for swaps
 
-- **[Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit)** - Core Solana blockchain integration
-- **[Sendai Documentation](https://docs.sendai.fun/docs/v2/introduction)** - Comprehensive Solana agent framework
-- **[Anthropic Claude](https://anthropic.com)** - Advanced AI language models
-- **[Jupiter](https://jup.ag)** - Best price aggregation for token swaps
-- **[Raydium](https://raydium.io)** - Automated market maker and liquidity provider
-- **[Orca](https://orca.so)** - User-friendly DEX on Solana
+## Contributing
 
-## 🛠️ Advanced Features
-
-### Blockchain Operations
-- **Token Management**: Deploy, transfer, swap, and manage SPL tokens
-- **DeFi Integration**: Stake, provide liquidity, and interact with major protocols
-- **NFT Operations**: Create, mint, and manage NFT collections
-- **Blinks Support**: Create shareable blockchain action URLs
-- **Multi-DEX Routing**: Automatic best price discovery across Jupiter, Raydium, Orca
-
-### AI Agent Capabilities
-- **Natural Language Processing**: Execute blockchain operations via conversational commands
-- **Multi-Step Reasoning**: Complex task decomposition and execution
-- **Tool Orchestration**: Automatic selection and sequencing of blockchain tools
-- **Error Handling**: Intelligent retry logic and transaction simulation
-
-## 🤝 Contributing
-
-We welcome contributions from the community!
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Development Setup
 
@@ -333,34 +372,19 @@ black agent/
 prettier --write "solana-bridge/**/*.js"
 ```
 
-### Contribution Guidelines
+## Powered By
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+This project is built on top of excellent open-source projects:
 
-## 📄 License
+- **[Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit)** - Core Solana blockchain integration
+- **[Sendai Documentation](https://docs.sendai.fun/docs/v2/introduction)** - Comprehensive agent framework
+- **[Anthropic Claude](https://anthropic.com)** - AI language models
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔒 Security
-
-- Never commit private keys or `.env` files
-- Use environment variables for sensitive data
-- Implement proper authentication in production
-- Review transaction parameters before execution
-- Test thoroughly on devnet before mainnet deployment
-
-## 📚 Resources
-
-- **Solana Agent Kit**: [GitHub](https://github.com/sendaifun/solana-agent-kit) | [Documentation](https://docs.sendai.fun/docs/v2/introduction)
-- **Solana Documentation**: [docs.solana.com](https://docs.solana.com)
-- **Jupiter API**: [station.jup.ag/docs](https://station.jup.ag/docs)
-- **Anthropic Claude**: [docs.anthropic.com](https://docs.anthropic.com)
-
-## ⚠️ Disclaimer
+## Disclaimer
 
 This software is provided for educational and research purposes. Cryptocurrency trading and blockchain operations involve significant risk. Always do your own research and never invest more than you can afford to lose.
 
