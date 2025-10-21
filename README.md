@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="./assets/banner.png" alt="AABC Labs" width="100%"/>
+</p>
+
 # AABC Agent - Blockchain AI Agent Framework
 
-> **The Ultimate Form of Blockchain AI Agents** - Open Source Edition
+> Advanced AI agent framework with Solana blockchain integration
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -8,32 +12,47 @@
 
 ## 🌟 Overview
 
-AABC Agent is an advanced AI agent framework specialized in blockchain operations and cryptocurrency research. Built for the **COLOSSEUM Hackathon**, this framework combines cutting-edge AI capabilities with Solana blockchain integration to enable autonomous crypto trading, research, and DeFi operations.
+AABC Agent is an advanced AI agent framework that combines intelligent automation with comprehensive Solana blockchain operations. Built on top of [Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit), this framework provides both a Python-based AI agent system and a Node.js blockchain bridge for seamless Web3 integration.
+
+### What Makes AABC Agent Unique
+
+- **Multi-Language Architecture**: Python AI agents with Node.js blockchain bridge
+- **Production Ready**: Built on battle-tested [Sendai's Solana Agent Kit](https://docs.sendai.fun/docs/v2/introduction)
+- **Comprehensive DeFi**: Native support for Jupiter, Raydium, Orca, Meteora, and more
+- **Extensible Design**: Plugin-based architecture for easy customization
 
 ## ✨ Key Features
 
 ### 🔗 Blockchain Integration
 - **Solana Network Operations**
   - Token balance checking (SOL & SPL tokens)
-  - Token transfers and swaps
-  - Token deployment and management
+  - Token transfers and swaps via Jupiter, Raydium, Orca
+  - Token deployment and management with Metaplex
   - Blinks (Blockchain Links) creation and execution
+  - Stake SOL and interact with validators
+  - NFT minting and collection management
 
-### 📊 Advanced Crypto Research
-- **6-Source Parallel Analysis**
-  - Price analysis with technical indicators (MA, RSI, MACD)
-  - Social sentiment monitoring (Twitter/X, KOL opinions)
-  - On-chain data analysis (Dune Analytics integration)
-  - News aggregation (Delphi, Messari, CoinDesk)
-  - DeFi metrics (DEX liquidity, TVL, Staking APY)
-  - Technical analysis (support/resistance levels, chart patterns)
+### 💹 DeFi Protocol Support
+- **DEX Integration**
+  - Jupiter Aggregator for best swap prices
+  - Raydium AMM pools (CPMM, CLMM, AMMv4)
+  - Orca Whirlpool liquidity provision
+  - Meteora DLMM and Alpha Vaults
+  - Manifest limit orders
+- **Advanced Operations**
+  - Token launches via Pump.fun and PumpPortal
+  - Cross-chain bridging with Wormhole and deBridge
+  - Price feeds from Pyth Network
+  - Risk analysis with Rugcheck
+  - Perpetuals trading on Adrena and Drift
 
 ### 🤖 AI Agent Capabilities
-- Multi-step task execution
-- Tool-based architecture
-- Extensible plugin system
+- Multi-step task execution with Claude
+- Tool-based architecture for extensibility
+- Natural language command processing
 - MCP (Model Context Protocol) support
-- Custom workflow management
+- Parallel operation execution
+- Comprehensive error handling and retry logic
 
 ## 🚀 Quick Start
 
@@ -97,6 +116,34 @@ response = await agent.run(
 
 ## 📚 Architecture
 
+### System Design
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Python AI Agent Layer                    │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
+│  │   Claude    │  │   Prompt     │  │  Tool Manager    │   │
+│  │   Sonnet    │─▶│  Engineering │─▶│  & Orchestrator  │   │
+│  └─────────────┘  └──────────────┘  └─────────┬────────┘   │
+└────────────────────────────────────────────────┼────────────┘
+                                                 │ HTTP/REST
+                        ┌────────────────────────┴────────────┐
+                        │    Node.js Blockchain Bridge        │
+                        │  ┌──────────────────────────────┐   │
+                        │  │   Solana Agent Kit Service   │   │
+                        │  └─────────────┬────────────────┘   │
+                        │  ┌─────────────┴────────────────┐   │
+                        │  │    Jupiter | Raydium | Orca  │   │
+                        │  │  Meteora | Pyth | Rugcheck   │   │
+                        │  └─────────────┬────────────────┘   │
+                        └────────────────┼────────────────────┘
+                                         │ Solana Web3.js
+                        ┌────────────────┴────────────────────┐
+                        │         Solana Blockchain           │
+                        │  Mainnet/Devnet/Testnet RPC Node    │
+                        └─────────────────────────────────────┘
+```
+
 ### Core Components
 
 ```
@@ -121,12 +168,36 @@ aabc-agent-open-source/
 │   │   ├── blinks.js          # Blinks creation
 │   │   └── nft.js             # NFT operations
 │   └── services/              # Business logic
-│       ├── agentService.js    # Solana Agent Kit
+│       ├── agentService.js    # Solana Agent Kit integration
 │       ├── jupiterService.js  # Jupiter DEX
 │       ├── tokenService.js    # Token info
 │       └── blinksService.js   # Blinks generation
 └── blockchain_tools/          # Standalone blockchain tools
 ```
+
+### Technology Stack
+
+**AI & Language Models**
+- Anthropic Claude (Sonnet 4) for agent reasoning
+- LangChain for tool orchestration
+- MCP protocol for external integrations
+
+**Blockchain**
+- Solana Web3.js for blockchain interaction
+- Solana Agent Kit for high-level operations
+- Metaplex for NFT/Token standards
+
+**Backend**
+- Python 3.11+ with AsyncIO
+- Node.js 20+ with Express
+- RESTful API architecture
+
+**DeFi Protocols**
+- Jupiter Aggregator V6 API
+- Raydium SDK
+- Orca Whirlpools SDK
+- Meteora DLMM
+- Pyth Price Feeds
 
 ### Blockchain Tools
 
@@ -220,21 +291,46 @@ MESSARI_API_KEY=your_messari_key
 DELPHI_API_KEY=your_delphi_key
 ```
 
+## 🔌 Powered By
+
+This project is built on top of several excellent open-source projects:
+
+- **[Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit)** - Core Solana blockchain integration
+- **[Sendai Documentation](https://docs.sendai.fun/docs/v2/introduction)** - Comprehensive Solana agent framework
+- **[Anthropic Claude](https://anthropic.com)** - Advanced AI language models
+- **[Jupiter](https://jup.ag)** - Best price aggregation for token swaps
+- **[Raydium](https://raydium.io)** - Automated market maker and liquidity provider
+- **[Orca](https://orca.so)** - User-friendly DEX on Solana
+
+## 🛠️ Advanced Features
+
+### Blockchain Operations
+- **Token Management**: Deploy, transfer, swap, and manage SPL tokens
+- **DeFi Integration**: Stake, provide liquidity, and interact with major protocols
+- **NFT Operations**: Create, mint, and manage NFT collections
+- **Blinks Support**: Create shareable blockchain action URLs
+- **Multi-DEX Routing**: Automatic best price discovery across Jupiter, Raydium, Orca
+
+### AI Agent Capabilities
+- **Natural Language Processing**: Execute blockchain operations via conversational commands
+- **Multi-Step Reasoning**: Complex task decomposition and execution
+- **Tool Orchestration**: Automatic selection and sequencing of blockchain tools
+- **Error Handling**: Intelligent retry logic and transaction simulation
+
 ## 🤝 Contributing
 
-We welcome contributions! This project was created for the COLOSSEUM Hackathon and is now open source.
+We welcome contributions from the community!
 
 ### Development Setup
 
 ```bash
 # Install development dependencies
 pip install -r requirements-dev.txt
-
-# Run tests
-pytest tests/
+cd solana-bridge && npm install --save-dev
 
 # Format code
 black agent/
+prettier --write "solana-bridge/**/*.js"
 ```
 
 ### Contribution Guidelines
@@ -245,47 +341,29 @@ black agent/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📖 Documentation
-
-- [Agent Architecture](docs/architecture.md)
-- [Blockchain Tools API](docs/blockchain-tools.md)
-- [Prompt Engineering Guide](docs/prompts.md)
-- [MCP Integration](docs/mcp.md)
-
-## 🏆 COLOSSEUM Hackathon
-
-This project is part of our submission to the **COLOSSEUM Hackathon**.
-
-**Key Innovations:**
-- First AI agent with native Solana Blinks integration
-- 6-source parallel cryptocurrency research framework
-- Advanced prompt engineering for blockchain operations
-- Extensible tool architecture for DeFi protocols
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## 🔒 Security
 
-- **Demo**: [app.aabc.app](https://app.aabc.app)
-- **Documentation**: [docs.aabc.app](https://docs.aabc.app)
-- **Twitter**: [@AABC_Labs](https://twitter.com/AABC_Labs)
-- **Discord**: [Join our community](https://discord.gg/aabc)
+- Never commit private keys or `.env` files
+- Use environment variables for sensitive data
+- Implement proper authentication in production
+- Review transaction parameters before execution
+- Test thoroughly on devnet before mainnet deployment
 
-## 🙏 Acknowledgments
+## 📚 Resources
 
-- Built with [Anthropic Claude](https://anthropic.com)
-- Powered by [Solana](https://solana.com)
-- Integrated with [Jupiter](https://jup.ag), [Raydium](https://raydium.io), [Orca](https://orca.so)
-- Research data from [Messari](https://messari.io), [Delphi Digital](https://delphidigital.io), [Dune Analytics](https://dune.com)
+- **Solana Agent Kit**: [GitHub](https://github.com/sendaifun/solana-agent-kit) | [Documentation](https://docs.sendai.fun/docs/v2/introduction)
+- **Solana Documentation**: [docs.solana.com](https://docs.solana.com)
+- **Jupiter API**: [station.jup.ag/docs](https://station.jup.ag/docs)
+- **Anthropic Claude**: [docs.anthropic.com](https://docs.anthropic.com)
 
 ## ⚠️ Disclaimer
 
-This software is provided for educational and research purposes only. Cryptocurrency trading involves significant risk. Always do your own research and never invest more than you can afford to lose.
+This software is provided for educational and research purposes. Cryptocurrency trading and blockchain operations involve significant risk. Always do your own research and never invest more than you can afford to lose.
 
 ---
 
-**Built with ❤️ by AABC Labs for the COLOSSEUM Hackathon**
-
-*The Ultimate Form of Blockchain AI Agents*
+**Built by AABC Labs**
