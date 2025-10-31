@@ -11,7 +11,7 @@ import { SimulationService } from './simulationService.js';
 import { HITLService } from './hitlService.js';
 import pluginLoaderFixed from './pluginLoaderFixed.js';
 
-
+// 全局插件容器
 let loadedPlugins = {};
 
 /**
@@ -73,13 +73,13 @@ export class AgentService {
 
   async initialize() {
     try {
-
+      // 1. 首先初始化connection
       this.connection = new Connection(
         this.config.rpcUrl,
         'confirmed'
       );
 
-
+      // 2. 初始化wallet（必须在agent之前）
       let keypair;
       if (this.config.privateKey) {
         try {
@@ -111,9 +111,9 @@ export class AgentService {
       this.keypair = keypair;
       console.log('✅ Wallet adapter created for:', this.wallet.publicKey.toString());
 
-
+      // 3. 现在初始化Agent（wallet已经准备好）
       try {
-
+        // 准备agent配置，包括所有 API keys
         const agentConfig = {
           PINATA_JWT: process.env.PINATA_JWT || null,
           PINATA_GATEWAY: process.env.PINATA_GATEWAY || null,
@@ -121,7 +121,7 @@ export class AgentService {
           COINGECKO_DEMO_API_KEY: process.env.COINGECKO_DEMO_API_KEY || null
         };
 
-
+        // 配置警告
         if (!agentConfig.PINATA_JWT) {
           console.log('⚠️ WARNING: PINATA_JWT not configured. Pump.fun metadata upload will be skipped.');
         }
@@ -133,7 +133,7 @@ export class AgentService {
         }
 
         this.agent = new SolanaAgentKit(
-          this.wallet,
+          this.wallet,  // 现在wallet已经初始化了
           this.config.rpcUrl,
           agentConfig
         );
@@ -143,7 +143,7 @@ export class AgentService {
         this.agent = null;
       }
 
-
+      // 4. 使用修复后的插件加载器，传入agent上下文
       if (this.agent) {
         loadedPlugins = await pluginLoaderFixed.initializePlugins(this.agent);
       } else {
@@ -154,7 +154,7 @@ export class AgentService {
       // 5. Initialize plugins with minimal set
       await this.initializePlugins();
 
-
+      // 初始化独立服务
       // Note: Some services need the original Keypair, not the wallet adapter
       this.jupiterService = new JupiterService();
       this.blinksService = new BlinksService(this.connection, this.keypair);
@@ -188,8 +188,8 @@ export class AgentService {
   }
 
   async initializePlugins() {
-
-
+    // 插件已经在上面通过pluginLoaderFixed初始化
+    // 这里只需要将它们添加到plugins Map中
     for (const [name, plugin] of Object.entries(loadedPlugins)) {
       if (plugin) {
         this.plugins.set(name, plugin);
@@ -221,15 +221,16 @@ export class AgentService {
 
   async transfer(to, amount) {
     try {
-
-      if (!this.agent) {
+      // Always use native web3.js for SOL transfers (more reliable than agent.transfer)
+      // SolanaAgentKit v2 may not have transfer method or have different signature
+      if (true) {  // Force use of native implementation
         const { Transaction, SystemProgram, sendAndConfirmTransaction, LAMPORTS_PER_SOL } = await import('@solana/web3.js');
         const { PublicKey } = await import('@solana/web3.js');
 
         const toPubkey = new PublicKey(to);
         const lamportsToSend = amount * LAMPORTS_PER_SOL;
 
-
+        // 检查余额
         const balance = await this.connection.getBalance(this.wallet.publicKey);
         if (balance < lamportsToSend + 5000) {
           return {
@@ -265,7 +266,10 @@ export class AgentService {
         };
       }
 
-
+      // NOTE: SolanaAgentKit v2 transfer method is unreliable or has different signature
+      // Keeping native web3.js implementation above as primary method
+      // If agent.transfer becomes available/reliable in future, uncomment below:
+      /*
       const result = await this.agent.transfer({
         to,
         amount,
@@ -279,6 +283,7 @@ export class AgentService {
         to,
         amount
       };
+      */
     } catch (error) {
       return {
         success: false,
@@ -343,21 +348,21 @@ export class AgentService {
       // Convert slippage to basis points (0.5% = 50 bps)
       const slippageBps = Math.round(slippage * 100);
 
-
+      // 准备参数
       const outputPubkey = new PublicKey(outputMint);
 
-
+      // ✅ 检查是否是SOL（根据官方文档，SOL应该传undefined，不是PublicKey）
       let inputParam;
       let amountInSmallestUnits;
 
       const SOL_MINT = 'So11111111111111111111111111111111111111112';
       if (inputMint === SOL_MINT || inputMint === 'SOL') {
-
+        // SOL: 传undefined，amount转换为lamports
         inputParam = undefined;
         amountInSmallestUnits = Math.floor(amount * LAMPORTS_PER_SOL);
       } else {
-
-
+        // SPL Token: 传PublicKey，amount需要根据token decimals转换
+        // 这里先假设6 decimals（USDC标准）
         inputParam = new PublicKey(inputMint);
         amountInSmallestUnits = Math.floor(amount * 1_000_000);
       }
@@ -369,15 +374,15 @@ export class AgentService {
         slippageBps
       });
 
-
+      // ✅ 从this.plugins获取Token插件
       const tokenPlugin = this.plugins.get('token');
       if (!tokenPlugin || !tokenPlugin.methods || !tokenPlugin.methods.trade) {
         throw new Error('Token plugin or trade() method not available');
       }
 
-
+      // Token插件的trade方法签名（根据官方文档）:
       // trade(agent, outputMint, amount, inputMint?, slippageBps?)
-
+      // 注意：包装函数会自动传入agent，所以我们只传后4个参数
       console.log('Using tokenPlugin.methods.trade() from this.plugins');
 
       try {
@@ -399,7 +404,7 @@ export class AgentService {
           slippage: slippageBps
         };
       } catch (tradeError) {
-
+        // 捕获Token Plugin内部错误并提供更多上下文
         console.error('❌ Token Plugin trade() failed:', {
           error: tradeError.message,
           stack: tradeError.stack,
@@ -411,10 +416,10 @@ export class AgentService {
           }
         });
 
-
+        // 尝试提取更详细的错误信息
         let errorMessage = tradeError.message || 'Unknown swap error';
 
-
+        // 如果错误消息包含"Swap failed:"，尝试提取内部错误
         if (errorMessage.includes('Swap failed:')) {
           const innerError = errorMessage.replace('Swap failed:', '').trim();
           if (innerError) {

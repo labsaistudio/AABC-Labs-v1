@@ -61,6 +61,15 @@ AABC Agent is an advanced AI agent framework that combines intelligent automatio
 ### Non-Financial Actions
 - Gib Work for registering bounties
 
+### X402 Payment Protocol Integration
+- Autonomous HTTP 402 payment handling
+- Detect and parse payment-required responses
+- Execute payments on Solana blockchain
+- Automatic payment proof submission
+- Support for SOL and SPL token payments
+- Integration with Agent payment workflow
+- Test service for payment flow validation
+
 ### Market Data Integration
 - CoinGecko Pro API integration
 - Real-time token price data
@@ -91,60 +100,79 @@ AABC Agent is an advanced AI agent framework that combines intelligent automatio
 ### System Design
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Python AI Agent Layer                    │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐   │
-│  │   Claude    │  │   Prompt     │  │  Tool Manager    │   │
-│  │   Sonnet    │─▶│  Engineering │─▶│  & Orchestrator  │   │
-│  └─────────────┘  └──────────────┘  └─────────┬────────┘   │
-└────────────────────────────────────────────────┼────────────┘
-                                                 │ HTTP/REST
-                        ┌────────────────────────┴────────────┐
-                        │    Node.js Blockchain Bridge        │
-                        │  ┌──────────────────────────────┐   │
-                        │  │   Solana Agent Kit Service   │   │
-                        │  └─────────────┬────────────────┘   │
-                        │  ┌─────────────┴────────────────┐   │
-                        │  │    Jupiter | Raydium | Orca  │   │
-                        │  │  Meteora | Pyth | Rugcheck   │   │
-                        │  └─────────────┬────────────────┘   │
-                        └────────────────┼────────────────────┘
-                                         │ Solana Web3.js
-                        ┌────────────────┴────────────────────┐
-                        │         Solana Blockchain           │
-                        │  Mainnet/Devnet/Testnet RPC Node    │
-                        └─────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                      Python AI Agent Layer                       │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │   Claude    │  │   Prompt     │  │  Tool Manager        │   │
+│  │   Sonnet    │─▶│  Engineering │─▶│  & Orchestrator      │   │
+│  └─────────────┘  └──────────────┘  └─────────┬────────────┘   │
+│                                                │                 │
+│  ┌──────────────────────────────────────────────┴────────────┐  │
+│  │  Blockchain Tools  │  DeFi Tools  │  X402 Payment Tool   │  │
+│  └──────────────────────────────────────────────┬────────────┘  │
+└─────────────────────────────────────────────────┼───────────────┘
+                                                  │ HTTP/REST
+                         ┌────────────────────────┴─────────────┐
+                         │   X402 Gateway   │   Solana Bridge   │
+                         └────────────────────────┬──────────────┘
+                                                  │
+                         ┌────────────────────────┴─────────────┐
+                         │     Node.js Blockchain Bridge        │
+                         │  ┌──────────────────────────────┐    │
+                         │  │   Solana Agent Kit Service   │    │
+                         │  └─────────────┬─────────────────┘   │
+                         │  ┌─────────────┴─────────────────┐   │
+                         │  │    Jupiter | Raydium | Orca   │   │
+                         │  │  Meteora | Pyth | Rugcheck    │   │
+                         │  └─────────────┬─────────────────┘   │
+                         └────────────────┼─────────────────────┘
+                                          │ Solana Web3.js
+                         ┌────────────────┴─────────────────────┐
+                         │         Solana Blockchain            │
+                         │  Mainnet/Devnet/Testnet RPC Node     │
+                         └──────────────────────────────────────┘
 ```
 
 ### Core Components
 
 ```
 aabc-agent-open-source/
-├── agent/                     # Python AI Agent
-│   ├── prompt.py              # System prompts and agent behavior
-│   ├── run.py                 # Agent execution engine
-│   ├── tools/                 # Tool implementations
-│   │   └── blockchain_tools/  # Solana blockchain tools
-│   │       ├── solana_balance_tool.py
-│   │       ├── solana_swap_tool.py
-│   │       ├── solana_token_tool.py
-│   │       ├── solana_transfer_tool.py
-│   │       └── solana_blinks_tool.py
-│   └── utils.py               # Utility functions
-├── solana-bridge/             # Node.js Blockchain Bridge
-│   ├── index.js               # Express API server
-│   ├── routes/                # API endpoints
-│   │   ├── solana.js          # Wallet operations
-│   │   ├── token.js           # Token operations
-│   │   ├── defi.js            # DeFi operations
-│   │   ├── blinks.js          # Blinks creation
-│   │   └── nft.js             # NFT operations
-│   └── services/              # Business logic
-│       ├── agentService.js    # Solana Agent Kit integration
-│       ├── jupiterService.js  # Jupiter DEX
-│       ├── tokenService.js    # Token info
-│       └── blinksService.js   # Blinks generation
-└── blockchain_tools/          # Standalone blockchain tools
+├── backend/
+│   ├── agent/                     # Python AI Agent
+│   │   ├── prompt.py              # System prompts and agent behavior
+│   │   ├── run.py                 # Agent execution engine
+│   │   ├── tools/                 # Tool implementations
+│   │   │   ├── blockchain_tools/  # Solana blockchain tools
+│   │   │   │   ├── solana_balance_tool.py
+│   │   │   │   ├── solana_swap_tool.py
+│   │   │   │   ├── solana_token_tool.py
+│   │   │   │   ├── solana_transfer_tool.py
+│   │   │   │   └── solana_blinks_tool.py
+│   │   │   └── x402_tools/        # X402 payment tools
+│   │   │       └── x402_payment.py
+│   │   └── utils.py               # Utility functions
+│   ├── blockchain/
+│   │   ├── solana_bridge_client.py    # Python client for Solana bridge
+│   │   └── solana-bridge/             # Node.js Blockchain Bridge
+│   │       ├── index.js               # Express API server
+│   │       ├── routes/                # API endpoints
+│   │       │   ├── solana.js          # Wallet operations
+│   │       │   ├── token.js           # Token operations
+│   │       │   ├── defi.js            # DeFi operations
+│   │       │   ├── blinks.js          # Blinks creation
+│   │       │   └── nft.js             # NFT operations
+│   │       └── services/              # Business logic
+│   │           ├── agentService.js    # Solana Agent Kit integration
+│   │           ├── jupiterService.js  # Jupiter DEX
+│   │           ├── tokenService.js    # Token info
+│   │           └── blinksService.js   # Blinks generation
+│   ├── services/                      # Core services
+│   │   ├── x402_gateway.py            # X402 payment gateway
+│   │   └── x402_api.py                # X402 API routes
+│   └── tests/                         # Test suite
+│       ├── x402_test_service.py       # X402 test service
+│       └── test_x402_gateway.py       # Gateway unit tests
+└── blockchain_tools/                  # Standalone blockchain tools
 ```
 
 ## Quick Start

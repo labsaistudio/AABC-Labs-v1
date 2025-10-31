@@ -1,9 +1,8 @@
 """
 Solana Bridge HTTP Client
-HTTP client for calling Node.js Solana Bridge service from Python backend
 
-The Solana Bridge is a standalone Node.js Express service that exposes HTTP APIs.
-This client calls that service via HTTP to execute Solana blockchain operations.
+HTTP client for calling Node.js Solana Bridge service from Python backend.
+The Solana Bridge is a standalone Node.js Express service that exposes HTTP API.
 
 Author: AABC Labs
 Date: 2025-10-29
@@ -30,7 +29,7 @@ class SolanaBridge:
         Initialize Solana Bridge client
 
         Environment Variables:
-            SOLANA_BRIDGE_URL: URL of the Solana Bridge service
+            SOLANA_BRIDGE_URL: URL of Solana Bridge service
                 Default: http://localhost:3001
         """
         # Auto-detect if running in Docker container
@@ -131,7 +130,7 @@ class SolanaBridge:
         Args:
             recipient: Recipient address (Solana wallet address)
             amount: Transfer amount
-            token: Token type (default: USDC)
+            token: Token type (default USDC)
 
         Returns:
             Transaction signature
@@ -156,7 +155,7 @@ class SolanaBridge:
                 data = {
                     "to": recipient,
                     "amount": amount,
-                    "mint": self._get_token_mint(token)
+                    "tokenAddress": self._get_token_mint(token)  # Node.js expects "tokenAddress"
                 }
 
             result = await self._call_bridge('POST', endpoint, data)
@@ -185,7 +184,7 @@ class SolanaBridge:
             tx_signature: Transaction signature
 
         Returns:
-            Transaction details dict, None if failed
+            Transaction details dictionary, None if failed
         """
         logger.info(f"Fetching transaction info: {tx_signature[:8]}...")
 
@@ -211,12 +210,12 @@ class SolanaBridge:
         Get token mint address
 
         Args:
-            token: Token symbol (e.g. USDC, USDT)
+            token: Token symbol (e.g., USDC, USDT)
 
         Returns:
             Mint address
         """
-        # Main token mint addresses (Solana Mainnet)
+        # Token mint addresses (Solana Mainnet)
         token_mints = {
             "USDC": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "USDT": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",

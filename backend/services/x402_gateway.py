@@ -1,17 +1,4 @@
-"""
-X402 Gateway Service
-Handles HTTP 402 responses and payment flows
-
-Features:
-- Detect HTTP 402 responses
-- Parse payment information
-- Execute Solana payments
-- Verify transactions
-- Retry requests with payment proof
-
-Author: AABC Labs
-Date: 2025-10-29
-"""
+""" X402 Gateway Service HTTP 402 ResponseandPayment : - Detect HTTP 402 Response - ParsePaymentInformation - Execute Solana Payment - VerifyTransaction - RetryRequest Author: AABC Labs Date: 2025-10-29 """
 
 import asyncio
 import logging
@@ -22,14 +9,14 @@ from datetime import datetime
 import httpx
 from pydantic import BaseModel, Field
 
-# Import Solana Bridge client
+# Solana Bridge Client
 from blockchain.solana_bridge_client import SolanaBridge
 
 logger = logging.getLogger(__name__)
 
 
 class PaymentRequest(BaseModel):
-    """Payment request model"""
+    """PaymentRequest"""
     service_url: str
     service_name: Optional[str] = None
     service_description: Optional[str] = None
@@ -42,7 +29,7 @@ class PaymentRequest(BaseModel):
 
 
 class PaymentReceipt(BaseModel):
-    """Payment receipt model"""
+    """PaymentReceipt"""
     payment_id: str
     tx_signature: str
     amount: Decimal
@@ -56,67 +43,48 @@ class PaymentReceipt(BaseModel):
 
 
 class X402Gateway:
-    """
-    X402 Payment Gateway
-
-    Core class for handling HTTP 402 responses and payment flows
-    """
+    """ X402 PaymentGateway HTTP 402 ResponseandPayment """
 
     def __init__(
         self,
-        supabase_client,
+        db_connection,
         solana_bridge: SolanaBridge,
         max_payment_amount: Decimal = Decimal("10.0")
     ):
-        """
-        Initialize X402 Gateway
-
-        Args:
-            supabase_client: Supabase client instance
-            solana_bridge: Solana Bridge instance
-            max_payment_amount: Maximum payment amount limit (USDC)
-        """
-        self.supabase = supabase_client
+        """ Initialize X402 Gateway Args: db_connection: DBConnection solana_bridge: Solana Bridge max_payment_amount: MaximumPaymentAmountLimit（USDC） """
+        self.db = db_connection
         self.solana = solana_bridge
         self.max_payment_amount = max_payment_amount
         self.client = httpx.AsyncClient(timeout=30.0)
 
-        logger.info(f"X402Gateway initialized, max payment limit: {max_payment_amount} USDC")
+        logger.info(f"X402Gateway ，: {max_payment_amount} USDC")
 
     async def detect_402_response(
         self,
         response: httpx.Response
     ) -> Optional[PaymentRequest]:
-        """
-        Detect HTTP 402 response and parse payment information
-
-        Args:
-            response: HTTP response object
-
-        Returns:
-            PaymentRequest object, or None if not a 402 response
-        """
+        """ Detect HTTP 402 ResponseParsePaymentInformation Args: response: HTTP Responsefor Returns: PaymentRequest for，ifnotis 402 ResponseReturns None """
         if response.status_code != 402:
             return None
 
-        logger.info(f"Detected HTTP 402 response: {response.url}")
+        logger.info(f" HTTP 402 : {response.url}")
 
         try:
-            # Parse payment info from response headers
+            # fromResponseParsePaymentInformation
             payment_info = self._parse_payment_headers(response.headers)
 
-            # Or parse from response body (according to x402 protocol spec)
+            # orfromResponseParse ( x402 )
             if not payment_info and response.content:
                 try:
                     payment_info = self._parse_payment_body(response.json())
                 except Exception:
-                    logger.warning("Unable to parse payment info from response body")
+                    logger.warning("")
 
             if not payment_info:
-                logger.error("Unable to parse payment info from 402 response")
+                logger.error(" 402 ")
                 return None
 
-            # Create PaymentRequest object
+            # Create PaymentRequest for
             payment_request = PaymentRequest(
                 service_url=str(response.url),
                 service_name=payment_info.get("service_name"),
@@ -129,27 +97,27 @@ class X402Gateway:
                 metadata=payment_info.get("metadata")
             )
 
-            # Verify payment amount does not exceed limit
+            # VerifyPaymentAmountnotLimit
             if payment_request.amount > self.max_payment_amount:
                 logger.error(
-                    f"Payment amount {payment_request.amount} exceeds max limit "
+                    f" {payment_request.amount}  "
                     f"{self.max_payment_amount}"
                 )
                 return None
 
             logger.info(
-                f"Successfully parsed payment request: {payment_request.amount} {payment_request.token} "
+                f": {payment_request.amount} {payment_request.token} "
                 f"→ {payment_request.recipient_address[:8]}..."
             )
             return payment_request
 
         except Exception as e:
-            logger.error(f"Failed to parse 402 response: {str(e)}", exc_info=True)
+            logger.error(f" 402 : {str(e)}", exc_info=True)
             return None
 
     def _parse_payment_headers(self, headers: httpx.Headers) -> Optional[Dict]:
-        """Parse payment information from response headers"""
-        # X402 standard headers
+        """fromResponseParsePaymentInformation"""
+        # X402 
         payment_amount = headers.get("X-Payment-Amount")
         payment_recipient = headers.get("X-Payment-Recipient")
         payment_token = headers.get("X-Payment-Token", "USDC")
@@ -168,7 +136,7 @@ class X402Gateway:
         }
 
     def _parse_payment_body(self, body: Dict) -> Optional[Dict]:
-        """Parse payment information from response body"""
+        """fromResponseParsePaymentInformation"""
         if "payment" in body:
             return body["payment"]
         return None
@@ -180,27 +148,13 @@ class X402Gateway:
         agent_id: Optional[str] = None,
         thread_id: Optional[str] = None
     ) -> PaymentReceipt:
-        """
-        Execute X402 payment
-
-        Args:
-            payment_request: Payment request
-            user_id: User ID
-            agent_id: Agent ID (optional)
-            thread_id: Thread ID (optional)
-
-        Returns:
-            PaymentReceipt payment receipt
-
-        Raises:
-            Exception: When payment fails
-        """
+        """ Execute X402 Payment Args: payment_request: PaymentRequest user_id: ID agent_id: Agent ID (Optional) thread_id: Thread ID (Optional) Returns: PaymentReceipt PaymentReceipt Raises: Exception: PaymentFailedAbnormal """
         logger.info(
-            f"Starting payment execution: {payment_request.amount} {payment_request.token} "
+            f": {payment_request.amount} {payment_request.token} "
             f"→ {payment_request.recipient_address[:8]}..."
         )
 
-        # 1. Create payment record in database (status: pending)
+        # 1. inDatainCreatePaymentRecord (Status: pending)
         payment_id = await self._create_payment_record(
             payment_request=payment_request,
             user_id=user_id,
@@ -210,34 +164,34 @@ class X402Gateway:
         )
 
         try:
-            # 2. Update status to processing
+            # 2. UpdateStatusas processing
             await self._update_payment_status(payment_id, "processing")
 
-            # 3. Use Solana Bridge to execute transfer
-            logger.info("Calling Solana Bridge to execute transfer...")
+            # 3. using Solana Bridge ExecuteTransfer
+            logger.info(" Solana Bridge ...")
             tx_signature = await self.solana.transfer_token(
                 recipient=payment_request.recipient_address,
                 amount=float(payment_request.amount),
                 token=payment_request.token
             )
 
-            logger.info(f"✅ Payment successful! Tx: {tx_signature}")
+            logger.info(f"✅ ! Tx: {tx_signature}")
 
-            # 4. Update payment record
+            # 4. UpdatePaymentRecord
             await self._update_payment_record(
                 payment_id=payment_id,
                 tx_signature=tx_signature,
                 status="confirmed"
             )
 
-            # 5. Verify on-chain transaction (optional)
+            # 5. VerifyTransaction（Optional）
             verified = await self._verify_transaction(
                 tx_signature=tx_signature,
                 expected_amount=payment_request.amount,
                 expected_recipient=payment_request.recipient_address
             )
 
-            # 6. Create payment receipt
+            # 6. CreatePaymentReceipt
             receipt = PaymentReceipt(
                 payment_id=payment_id,
                 tx_signature=tx_signature,
@@ -254,16 +208,16 @@ class X402Gateway:
             return receipt
 
         except Exception as e:
-            logger.error(f"Payment execution failed: {str(e)}", exc_info=True)
+            logger.error(f": {str(e)}", exc_info=True)
 
-            # Update payment status to failed
+            # UpdatePaymentStatusas failed
             await self._update_payment_record(
                 payment_id=payment_id,
                 status="failed",
                 error_message=str(e)
             )
 
-            raise Exception(f"Payment failed: {str(e)}")
+            raise Exception(f": {str(e)}")
 
     async def retry_request_with_payment(
         self,
@@ -271,20 +225,10 @@ class X402Gateway:
         receipt: PaymentReceipt,
         original_request_data: Optional[Dict] = None
     ) -> httpx.Response:
-        """
-        Retry original request after successful payment
+        """ PaymentSuccessRetryRequest Args: payment_request: PaymentRequest receipt: PaymentReceipt original_request_data: RequestData（、body ） Returns: HTTP Response """
+        logger.info(f": {payment_request.service_url}")
 
-        Args:
-            payment_request: Payment request
-            receipt: Payment receipt
-            original_request_data: Original request data (method, body, etc.)
-
-        Returns:
-            HTTP response
-        """
-        logger.info(f"Retrying request with payment proof: {payment_request.service_url}")
-
-        # Build payment proof headers
+        # Payment
         headers = {
             "X-Payment-Signature": receipt.tx_signature,
             "X-Payment-Amount": str(receipt.amount),
@@ -293,7 +237,7 @@ class X402Gateway:
             "X-Payment-Blockchain": receipt.blockchain
         }
 
-        # Retry request
+        # RetryRequest
         method = original_request_data.get("method", "GET") if original_request_data else "GET"
         body = original_request_data.get("body") if original_request_data else None
 
@@ -305,22 +249,14 @@ class X402Gateway:
         )
 
         if response.status_code == 200:
-            logger.info("✅ Request with payment proof successful")
+            logger.info("✅ ")
         else:
-            logger.warning(f"⚠️ Request returned status code {response.status_code}")
+            logger.warning(f"⚠️  {response.status_code}")
 
         return response
 
     async def verify_payment(self, tx_signature: str) -> bool:
-        """
-        Verify payment was successful
-
-        Args:
-            tx_signature: Transaction signature
-
-        Returns:
-            bool: Verification result
-        """
+        """ VerifyPaymentisSuccess Args: tx_signature: TransactionSignature Returns: bool: Verify """
         return await self._verify_transaction(tx_signature, None, None)
 
     async def _create_payment_record(
@@ -331,9 +267,10 @@ class X402Gateway:
         thread_id: Optional[str],
         status: str
     ) -> str:
-        """Create payment record in database"""
+        """inDatainCreatePaymentRecord"""
         try:
-            result = await self.supabase.table("x402_payments").insert({
+            client = await self.db.client
+            result = await client.table("x402_payments").insert({
                 "user_id": user_id,
                 "agent_id": agent_id,
                 "thread_id": thread_id,
@@ -350,11 +287,11 @@ class X402Gateway:
             }).execute()
 
             payment_id = result.data[0]["payment_id"]
-            logger.info(f"Created payment record: {payment_id}")
+            logger.info(f": {payment_id}")
             return payment_id
 
         except Exception as e:
-            logger.error(f"Failed to create payment record: {str(e)}", exc_info=True)
+            logger.error(f": {str(e)}", exc_info=True)
             raise
 
     async def _update_payment_record(
@@ -364,7 +301,7 @@ class X402Gateway:
         status: Optional[str] = None,
         error_message: Optional[str] = None
     ):
-        """Update payment record"""
+        """UpdatePaymentRecord"""
         try:
             update_data = {"updated_at": datetime.utcnow().isoformat()}
 
@@ -378,19 +315,20 @@ class X402Gateway:
             if status == "confirmed":
                 update_data["verified_at"] = datetime.utcnow().isoformat()
 
-            await self.supabase.table("x402_payments")\
+            client = await self.db.client
+            await client.table("x402_payments")\
                 .update(update_data)\
                 .eq("payment_id", payment_id)\
                 .execute()
 
-            logger.debug(f"Updated payment record: {payment_id} → {status}")
+            logger.debug(f": {payment_id} → {status}")
 
         except Exception as e:
-            logger.error(f"Failed to update payment record: {str(e)}", exc_info=True)
+            logger.error(f": {str(e)}", exc_info=True)
             raise
 
     async def _update_payment_status(self, payment_id: str, status: str):
-        """Update payment status"""
+        """UpdatePaymentStatus"""
         await self._update_payment_record(payment_id, status=status)
 
     async def _verify_transaction(
@@ -399,39 +337,29 @@ class X402Gateway:
         expected_amount: Optional[Decimal],
         expected_recipient: Optional[str]
     ) -> bool:
-        """
-        Verify on-chain transaction
-
-        Args:
-            tx_signature: Transaction signature
-            expected_amount: Expected amount
-            expected_recipient: Expected recipient address
-
-        Returns:
-            bool: Verification result
-        """
+        """ VerifyTransaction Args: tx_signature: TransactionSignature expected_amount: Amount expected_recipient: ReceiveAddress Returns: bool: Verify """
         try:
-            # Use Solana Bridge to verify transaction
+            # using Solana Bridge VerifyTransaction
             tx_info = await self.solana.get_transaction_info(tx_signature)
 
             if not tx_info:
-                logger.warning(f"Unable to get transaction info: {tx_signature}")
+                logger.warning(f": {tx_signature}")
                 return False
 
-            # TODO: Extract actual amount and recipient address from tx_info for verification
-            # Currently simplified implementation, only checks if transaction exists
+            # TODO: from tx_info inAmountandReceiveAddressVerify
+            # ，Transactionisin
 
-            logger.info(f"✅ Transaction verified successfully: {tx_signature}")
+            logger.info(f"✅ : {tx_signature}")
             return True
 
         except Exception as e:
-            logger.error(f"Transaction verification failed: {str(e)}", exc_info=True)
+            logger.error(f": {str(e)}", exc_info=True)
             return False
 
     async def close(self):
-        """Close client connections"""
+        """CloseClientConnect"""
         await self.client.aclose()
-        logger.info("X402Gateway closed")
+        logger.info("X402Gateway ")
 
     def __repr__(self):
         return f"<X402Gateway max_amount={self.max_payment_amount} USDC>"

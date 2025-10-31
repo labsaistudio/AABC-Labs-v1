@@ -1,19 +1,4 @@
-"""
-X402 API Routes
-Provides X402 payment-related REST API
-
-Endpoints:
-- POST /x402/payments - Create payment
-- GET /x402/payments - Get payment history
-- GET /x402/payments/{payment_id} - Get single payment details
-- POST /x402/verify/{tx_signature} - Verify payment transaction
-- POST /x402/services - Register service
-- GET /x402/services - List services
-- GET /x402/services/{service_id} - Get service details
-
-Author: AABC Labs
-Date: 2025-10-29
-"""
+""" X402 API Routes X402 Payment REST API Endpoints: - POST /x402/payments - CreatePayment - GET /x402/payments - GetPayment - GET /x402/payments/{payment_id} - GetPayment - POST /x402/verify/{tx_signature} - VerifyPaymentTransaction - POST /x402/services - Service - GET /x402/services - Service - GET /x402/services/{service_id} - GetService Author: AABC Labs Date: 2025-10-29 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
@@ -28,10 +13,10 @@ from blockchain.solana_bridge_client import SolanaBridge
 
 logger = logging.getLogger(__name__)
 
-# Create router
+# Create
 router = APIRouter(prefix="/x402", tags=["X402 Payments"])
 
-# Global variables (will be set during initialization)
+# （willinInitializeSet）
 db_connection: Optional[DBConnection] = None
 x402_gateway: Optional[X402Gateway] = None
 
@@ -41,19 +26,19 @@ x402_gateway: Optional[X402Gateway] = None
 # ============================================================================
 
 class CreatePaymentRequest(BaseModel):
-    """Create payment request"""
-    service_url: str = Field(..., description="Service URL")
-    amount: Decimal = Field(..., gt=0, description="Payment amount")
-    token: str = Field(default="USDC", description="Token type")
-    recipient_address: str = Field(..., description="Recipient address")
+    """CreatePaymentRequest"""
+    service_url: str = Field(..., description=" URL")
+    amount: Decimal = Field(..., gt=0, description="")
+    token: str = Field(default="USDC", description="")
+    recipient_address: str = Field(..., description="")
     agent_id: Optional[str] = Field(None, description="Agent ID")
     thread_id: Optional[str] = Field(None, description="Thread ID")
-    service_name: Optional[str] = Field(None, description="Service name")
-    service_description: Optional[str] = Field(None, description="Service description")
+    service_name: Optional[str] = Field(None, description="")
+    service_description: Optional[str] = Field(None, description="")
 
 
 class PaymentResponse(BaseModel):
-    """Payment response"""
+    """PaymentResponse"""
     payment_id: str
     tx_signature: str
     amount: Decimal
@@ -63,20 +48,20 @@ class PaymentResponse(BaseModel):
 
 
 class ServiceRegistration(BaseModel):
-    """Service registration request"""
-    service_name: str = Field(..., max_length=100, description="Service name")
-    service_description: str = Field(..., description="Service description")
-    service_url: str = Field(..., description="Service URL")
-    price: Decimal = Field(..., ge=0, description="Price")
-    price_token: str = Field(default="USDC", description="Price token")
-    payment_address: str = Field(..., description="Wallet address for receiving payments")
-    service_category: Optional[str] = Field(None, description="Service category")
-    tags: Optional[List[str]] = Field(None, description="Tags")
-    agent_id: Optional[str] = Field(None, description="Associated Agent ID")
+    """ServiceRequest"""
+    service_name: str = Field(..., max_length=100, description="")
+    service_description: str = Field(..., description="")
+    service_url: str = Field(..., description=" URL")
+    price: Decimal = Field(..., ge=0, description="")
+    price_token: str = Field(default="USDC", description="")
+    payment_address: str = Field(..., description="")
+    service_category: Optional[str] = Field(None, description="")
+    tags: Optional[List[str]] = Field(None, description="")
+    agent_id: Optional[str] = Field(None, description=" Agent ID")
 
 
 class ServiceResponse(BaseModel):
-    """Service response"""
+    """ServiceResponse"""
     service_id: str
     service_name: str
     service_description: str
@@ -92,9 +77,9 @@ class ServiceResponse(BaseModel):
 # ============================================================================
 
 async def get_current_user(request):
-    """Get current user (from JWT token)"""
-    # TODO: Implement full JWT verification
-    # Currently simplified implementation, get user ID from header
+    """Getwhen（from JWT token）"""
+    # TODO: JWT Verify
+    # ，from header inGet ID
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -102,12 +87,12 @@ async def get_current_user(request):
             detail="Missing or invalid authentication token"
         )
 
-    # Simplified implementation: extract user ID from supabase JWT
-    # Production environment needs full JWT verification
+    # ：from supabase JWT in ID
+    # need JWT Verify
     try:
         client = await db_connection.client
-        # Use supabase client to verify token
-        user_id = "test-user-id"  # TODO: Actually extract from token
+        # using supabase client Verify token
+        user_id = "test-user-id"  # TODO: from token in
         return {"id": user_id}
     except Exception as e:
         logger.error(f"Token verification failed: {str(e)}")
@@ -118,7 +103,7 @@ async def get_current_user(request):
 
 
 async def get_x402_gateway() -> X402Gateway:
-    """Get X402 Gateway instance"""
+    """Get X402 Gateway """
     if not x402_gateway:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -136,23 +121,11 @@ async def create_payment(
     request: CreatePaymentRequest,
     gateway: X402Gateway = Depends(get_x402_gateway)
 ):
-    """
-    Create and execute X402 payment
-
-    Args:
-        request: Payment request
-        gateway: X402 Gateway instance
-
-    Returns:
-        PaymentResponse: Payment receipt
-
-    Raises:
-        HTTPException: When payment fails
-    """
+    """ CreateExecute X402 Payment Args: request: PaymentRequest gateway: X402 Gateway Returns: PaymentResponse: PaymentReceipt Raises: HTTPException: PaymentFailed """
     try:
-        logger.info(f"Received payment request: {request.amount} {request.token} → {request.recipient_address[:8]}...")
+        logger.info(f": {request.amount} {request.token} → {request.recipient_address[:8]}...")
 
-        # Create payment request
+        # CreatePaymentRequest
         payment_request = GatewayPaymentRequest(
             service_url=request.service_url,
             service_name=request.service_name,
@@ -162,8 +135,8 @@ async def create_payment(
             recipient_address=request.recipient_address
         )
 
-        # Execute payment (currently using test user ID)
-        # TODO: Get real user_id from JWT token
+        # ExecutePayment（using test user ID）
+        # TODO: from JWT token inGet user_id
         user_id = "test-user-id"
 
         receipt = await gateway.execute_payment(
@@ -183,7 +156,7 @@ async def create_payment(
         )
 
     except Exception as e:
-        logger.error(f"Payment failed: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Payment failed: {str(e)}"
@@ -195,18 +168,9 @@ async def list_payments(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0)
 ):
-    """
-    Get user's payment history
-
-    Args:
-        limit: Return count limit
-        offset: Offset
-
-    Returns:
-        List[PaymentResponse]: List of payment records
-    """
+    """ GetPayment Args: limit: ReturnsLimit offset: Returns: List[PaymentResponse]: PaymentRecord """
     try:
-        # TODO: Get real user_id from JWT token
+        # TODO: from JWT token inGet user_id
         user_id = "test-user-id"
 
         client = await db_connection.client
@@ -233,7 +197,7 @@ async def list_payments(
         return payments
 
     except Exception as e:
-        logger.error(f"Failed to fetch payment history: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch payments: {str(e)}"
@@ -242,17 +206,9 @@ async def list_payments(
 
 @router.get("/payments/{payment_id}", response_model=PaymentResponse)
 async def get_payment(payment_id: str):
-    """
-    Get single payment record details
-
-    Args:
-        payment_id: Payment ID
-
-    Returns:
-        PaymentResponse: Payment details
-    """
+    """ GetPaymentRecord Args: payment_id: Payment ID Returns: PaymentResponse: Payment """
     try:
-        # TODO: Get real user_id from JWT token
+        # TODO: from JWT token inGet user_id
         user_id = "test-user-id"
 
         client = await db_connection.client
@@ -282,7 +238,7 @@ async def get_payment(payment_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to fetch payment details: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch payment: {str(e)}"
@@ -294,16 +250,7 @@ async def verify_payment(
     tx_signature: str,
     gateway: X402Gateway = Depends(get_x402_gateway)
 ):
-    """
-    Verify payment transaction
-
-    Args:
-        tx_signature: Transaction signature
-        gateway: X402 Gateway instance
-
-    Returns:
-        dict: Verification result
-    """
+    """ VerifyPaymentTransaction Args: tx_signature: TransactionSignature gateway: X402 Gateway Returns: dict: Verify """
     try:
         verified = await gateway.verify_payment(tx_signature)
 
@@ -314,7 +261,7 @@ async def verify_payment(
         }
 
     except Exception as e:
-        logger.error(f"Payment verification failed: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to verify payment: {str(e)}"
@@ -323,17 +270,9 @@ async def verify_payment(
 
 @router.post("/services", status_code=status.HTTP_201_CREATED)
 async def register_service(service: ServiceRegistration):
-    """
-    Register X402 service
-
-    Args:
-        service: Service registration information
-
-    Returns:
-        dict: Created service information
-    """
+    """ X402 Service Args: service: ServiceInformation Returns: dict: CreateServiceInformation """
     try:
-        # TODO: Get real user_id from JWT token
+        # TODO: from JWT token inGet user_id
         user_id = "test-user-id"
 
         client = await db_connection.client
@@ -353,7 +292,7 @@ async def register_service(service: ServiceRegistration):
         return result.data[0]
 
     except Exception as e:
-        logger.error(f"Service registration failed: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to register service: {str(e)}"
@@ -362,21 +301,11 @@ async def register_service(service: ServiceRegistration):
 
 @router.get("/services", response_model=List[ServiceResponse])
 async def list_services(
-    category: Optional[str] = Query(None, description="Service category"),
+    category: Optional[str] = Query(None, description=""),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0)
 ):
-    """
-    List available X402 services
-
-    Args:
-        category: Service category filter
-        limit: Return count limit
-        offset: Offset
-
-    Returns:
-        List[ServiceResponse]: Service list
-    """
+    """ X402 Service Args: category: ServiceFilter limit: ReturnsLimit offset: Returns: List[ServiceResponse]: Service """
     try:
         client = await db_connection.client
         query = client.table("x402_services")\
@@ -408,7 +337,7 @@ async def list_services(
         return services
 
     except Exception as e:
-        logger.error(f"Failed to fetch service list: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch services: {str(e)}"
@@ -417,15 +346,7 @@ async def list_services(
 
 @router.get("/services/{service_id}")
 async def get_service(service_id: str):
-    """
-    Get service details
-
-    Args:
-        service_id: Service ID
-
-    Returns:
-        dict: Service details
-    """
+    """ GetService Args: service_id: Service ID Returns: dict: Service """
     try:
         client = await db_connection.client
         result = await client.table("x402_services")\
@@ -445,7 +366,7 @@ async def get_service(service_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to fetch service details: {str(e)}", exc_info=True)
+        logger.error(f": {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch service: {str(e)}"
@@ -457,16 +378,11 @@ async def get_service(service_id: str):
 # ============================================================================
 
 def initialize(db: DBConnection):
-    """
-    Initialize X402 API module
-
-    Args:
-        db: Database connection instance
-    """
+    """ Initialize X402 API Args: db: DataConnect """
     global db_connection, x402_gateway
 
     db_connection = db
-    logger.info("X402 API module initialized")
+    logger.info("X402 API ")
 
     # Initialize X402 Gateway
     try:
@@ -475,13 +391,13 @@ def initialize(db: DBConnection):
 
         # Create X402 Gateway
         x402_gateway = X402Gateway(
-            supabase_client=db_connection.client,
+            db_connection=db_connection,
             solana_bridge=solana_bridge,
             max_payment_amount=Decimal("10.0")
         )
 
-        logger.info("X402 Gateway initialized")
+        logger.info("X402 Gateway ")
     except Exception as e:
-        logger.error(f"X402 Gateway initialization failed: {str(e)}", exc_info=True)
-        # Don't throw exception, allow application to start
-        # X402 functionality will be unavailable, but doesn't affect other features
+        logger.error(f"X402 Gateway : {str(e)}", exc_info=True)
+        # notAbnormal，
+        # X402 willnot，not

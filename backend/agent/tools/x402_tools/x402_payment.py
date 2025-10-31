@@ -1,7 +1,4 @@
-"""
-X402 Payment Tool
-Enables agents to autonomously pay for HTTP 402 services using X402 protocol
-"""
+""" X402 Payment Tool Enables agents to autonomously pay for HTTP 402 services using X402 protocol """
 
 import json
 import logging
@@ -15,47 +12,31 @@ from utils.logger import logger
 
 
 class X402PaymentTool(Tool):
-    """
-    X402 autonomous payment tool for agents
+    """ X402 autonomous payment tool for agents Enables agents to: 1. Detect HTTP 402 Payment Required responses 2. Parse payment information 3. Execute payments on Solana blockchain 4. Retry requests with payment proof 5. Call other agents' paid services """
 
-    Enables agents to:
-    1. Detect HTTP 402 Payment Required responses
-    2. Parse payment information
-    3. Execute payments on Solana blockchain
-    4. Retry requests with payment proof
-    5. Call other agents' paid services
-    """
-
-    def __init__(self, thread_manager: ThreadManager, x402_gateway: X402Gateway):
-        """
-        Initialize X402 payment tool
-
-        Args:
-            thread_manager: Thread manager instance for user context
-            x402_gateway: X402 Gateway instance for payment processing
-        """
+    def __init__(self, thread_manager: ThreadManager, x402_gateway: X402Gateway, thread_id: str):
+        """ Initialize X402 payment tool Args: thread_manager: Thread manager instance for user context x402_gateway: X402 Gateway instance for payment processing thread_id: Thread ID for context """
         super().__init__()
         self.thread_manager = thread_manager
         self.x402 = x402_gateway
+        self.thread_id = thread_id
 
-        logger.info("X402PaymentTool initialized")
+        logger.info(f"X402PaymentTool initialized for thread {thread_id}")
+
+    async def _get_user_id(self) -> str:
+        """Get user ID from thread context"""
+        from utils.auth_utils import get_account_id_from_thread
+        client = await self.thread_manager.db.client
+        user_id = await get_account_id_from_thread(client, self.thread_id)
+        if not user_id:
+            raise Exception("Could not determine user ID from thread")
+        return user_id
 
     @openapi_schema({
         "type": "function",
         "function": {
             "name": "x402_pay_for_service",
-            "description": """
-            Pay for an API service using X402 protocol on Solana blockchain.
-
-            This tool allows the agent to automatically pay for HTTP 402 services.
-            Use this when:
-            1. An API returns HTTP 402 Payment Required
-            2. You need to access a paid service on behalf of the user
-            3. User has authorized payment within the budget limit
-
-            IMPORTANT: Always ask user for authorization before making a payment!
-            The payment is irreversible once confirmed on the blockchain.
-            """,
+            "description": """ Pay for an API service using X402 protocol on Solana blockchain. This tool allows the agent to automatically pay for HTTP 402 services. Use this when: 1. An API returns HTTP 402 Payment Required 2. You need to access a paid service on behalf of the user 3. User has authorized payment within the budget limit IMPORTANT: Always ask user for authorization before making a payment! The payment is irreversible once confirmed on the blockchain. """,
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -106,28 +87,7 @@ class X402PaymentTool(Tool):
         service_name: Optional[str] = None,
         auto_approve: bool = False
     ) -> ToolResult:
-        """
-        Automatically pay for HTTP 402 services
-
-        Workflow:
-        1. Request service URL
-        2. Detect HTTP 402 response
-        3. Parse payment information
-        4. Verify amount does not exceed max_amount
-        5. Ask user authorization (if auto_approve=False)
-        6. Execute payment on Solana
-        7. Retry request with payment proof
-        8. Return service response
-
-        Args:
-            service_url: URL of the service requiring payment
-            max_amount: Maximum payment amount in USDC
-            service_name: Human-readable service name (optional)
-            auto_approve: Skip user confirmation (use with caution)
-
-        Returns:
-            ToolResult with payment receipt and service response
-        """
+        """ Automatically pay for HTTP 402 services Workflow: 1. Request service URL 2. Detect HTTP 402 response 3. Parse payment information 4. Verify amount does not exceed max_amount 5. Ask user authorization (if auto_approve=False) 6. Execute payment on Solana 7. Retry request with payment proof 8. Return service response Args: service_url: URL of the service requiring payment max_amount: Maximum payment amount in USDC service_name: Human-readable service name (optional) auto_approve: Skip user confirmation (use with caution) Returns: ToolResult with payment receipt and service response """
         try:
             logger.info(f"X402: Attempting to access service: {service_url}")
 
@@ -161,24 +121,16 @@ class X402PaymentTool(Tool):
                     f"Increase max_amount or negotiate with service provider."
                 )
 
-            # Step 4: Ask user authorization (unless auto_approve=True)
+            # Step 4: Log payment details for user review
             if not auto_approve:
-                authorization_message = (
-                    f"💰 **Payment Authorization Required**\n\n"
-                    f"**Service:** {service_name or payment_request.service_name or service_url}\n"
-                    f"**Amount:** {payment_request.amount} {payment_request.token}\n"
-                    f"**Recipient:** {payment_request.recipient_address[:8]}...{payment_request.recipient_address[-8:]}\n"
-                    f"**Blockchain:** Solana\n\n"
-                    f"⚠️ This payment is irreversible once confirmed on the blockchain.\n\n"
-                    f"Do you authorize this payment?"
+                logger.info(
+                    f"Payment authorization would be requested: "
+                    f"{payment_request.amount} {payment_request.token} "
+                    f"to {payment_request.recipient_address[:8]}..."
                 )
-
-                # Send authorization request to user via narrative
-                await self.thread_manager.add_narrative(authorization_message)
-
                 # TODO: Implement real-time user confirmation via frontend
                 # For now, we proceed with payment (development mode)
-                # In production, this should wait for user response
+                # In production, this should wait for user response and return early
                 logger.warning("User confirmation not implemented - proceeding with payment (dev mode)")
 
             # Step 5: Execute payment on Solana blockchain
@@ -187,11 +139,14 @@ class X402PaymentTool(Tool):
                 f"to {payment_request.recipient_address[:8]}..."
             )
 
+            # Get user ID from thread context
+            user_id = await self._get_user_id()
+
             receipt = await self.x402.execute_payment(
                 payment_request=payment_request,
-                user_id=self.thread_manager.user_id,
-                agent_id=self.thread_manager.agent_id,
-                thread_id=self.thread_manager.thread_id
+                user_id=user_id,
+                agent_id=None,  # Agent ID not available in tool context
+                thread_id=self.thread_id
             )
 
             logger.info(f"Payment successful! Tx: {receipt.tx_signature}")
@@ -242,12 +197,7 @@ class X402PaymentTool(Tool):
         "type": "function",
         "function": {
             "name": "x402_call_agent",
-            "description": """
-            Call another agent's service and pay using X402 protocol.
-
-            Use this for agent-to-agent collaboration where services require payment.
-            This enables the economy of autonomous agents on Solana.
-            """,
+            "description": """ Call another agent's service and pay using X402 protocol. Use this for agent-to-agent collaboration where services require payment. This enables the economy of autonomous agents on Solana. """,
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -291,20 +241,7 @@ class X402PaymentTool(Tool):
         max_payment: float,
         request_data: Optional[Dict[str, Any]] = None
     ) -> ToolResult:
-        """
-        Call another agent's service and pay using X402
-
-        Implements agent-to-agent collaboration with payments.
-        This enables a marketplace of agent services on Solana.
-
-        Args:
-            agent_service_id: UUID of the service from x402_services table
-            max_payment: Maximum payment amount in USDC
-            request_data: JSON data to send to the agent service
-
-        Returns:
-            ToolResult with agent response and payment receipt
-        """
+        """ Call another agent's service and pay using X402 Implements agent-to-agent collaboration with payments. This enables a marketplace of agent services on Solana. Args: agent_service_id: UUID of the service from x402_services table max_payment: Maximum payment amount in USDC request_data: JSON data to send to the agent service Returns: ToolResult with agent response and payment receipt """
         try:
             logger.info(f"X402: Calling agent service: {agent_service_id}")
 
@@ -340,12 +277,15 @@ class X402PaymentTool(Tool):
                 payment_request = await self.x402.detect_402_response(response)
 
                 if payment_request:
+                    # Get user ID from thread context
+                    user_id = await self._get_user_id()
+
                     # Execute payment
                     receipt = await self.x402.execute_payment(
                         payment_request=payment_request,
-                        user_id=self.thread_manager.user_id,
-                        agent_id=self.thread_manager.agent_id,
-                        thread_id=self.thread_manager.thread_id
+                        user_id=user_id,
+                        agent_id=None,  # Agent ID not available in tool context
+                        thread_id=self.thread_id
                     )
 
                     logger.info(f"Agent payment successful: {receipt.tx_signature}")
@@ -404,12 +344,7 @@ class X402PaymentTool(Tool):
         "type": "function",
         "function": {
             "name": "x402_register_service",
-            "description": """
-            Register this agent as an X402 service provider.
-
-            Allows this agent to offer paid services to other agents or users.
-            Creates a listing in the X402 service marketplace.
-            """,
+            "description": """ Register this agent as an X402 service provider. Allows this agent to offer paid services to other agents or users. Creates a listing in the X402 service marketplace. """,
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -457,24 +392,7 @@ class X402PaymentTool(Tool):
         service_category: Optional[str] = None,
         tags: Optional[list] = None
     ) -> ToolResult:
-        """
-        Register agent as X402 service provider
-
-        Creates a marketplace listing for this agent's paid service.
-        Other agents can discover and pay for this service.
-
-        Args:
-            service_name: Name of the service
-            service_description: What the service does
-            service_url: Service endpoint URL
-            price: Price in USDC
-            payment_address: Solana wallet to receive payments
-            service_category: Service category (optional)
-            tags: Tags for discovery (optional)
-
-        Returns:
-            ToolResult with service registration details
-        """
+        """ Register agent as X402 service provider Creates a marketplace listing for this agent's paid service. Other agents can discover and pay for this service. Args: service_name: Name of the service service_description: What the service does service_url: Service endpoint URL price: Price in USDC payment_address: Solana wallet to receive payments service_category: Service category (optional) tags: Tags for discovery (optional) Returns: ToolResult with service registration details """
         try:
             logger.info(f"Registering X402 service: {service_name}")
 
@@ -484,10 +402,13 @@ class X402PaymentTool(Tool):
                     f"Invalid Solana wallet address: {payment_address}"
                 )
 
+            # Get user ID from thread context
+            user_id = await self._get_user_id()
+
             # Prepare service registration data
             service_data = {
-                "provider_id": self.thread_manager.user_id,
-                "agent_id": self.thread_manager.agent_id,
+                "provider_id": user_id,
+                "agent_id": None,  # Agent ID not available in tool context
                 "service_name": service_name,
                 "service_description": service_description,
                 "service_url": service_url,
@@ -499,7 +420,7 @@ class X402PaymentTool(Tool):
             }
 
             # Register service in database
-            client = await self.thread_manager.supabase.client
+            client = await self.thread_manager.db.client
             result = await client.table("x402_services").insert(service_data).execute()
 
             if not result.data:
@@ -537,17 +458,9 @@ class X402PaymentTool(Tool):
             )
 
     async def _get_service_info(self, service_id: str) -> Optional[Dict]:
-        """
-        Query service information from database
-
-        Args:
-            service_id: UUID of the service
-
-        Returns:
-            Service info dict or None if not found
-        """
+        """ Query service information from database Args: service_id: UUID of the service Returns: Service info dict or None if not found """
         try:
-            client = await self.thread_manager.supabase.client
+            client = await self.thread_manager.db.client
             result = await client.table("x402_services")\
                 .select("*")\
                 .eq("service_id", service_id)\
@@ -562,15 +475,7 @@ class X402PaymentTool(Tool):
             return None
 
     def _validate_solana_address(self, address: str) -> bool:
-        """
-        Basic Solana address validation
-
-        Args:
-            address: Solana wallet address
-
-        Returns:
-            True if valid format, False otherwise
-        """
+        """ Basic Solana address validation Args: address: Solana wallet address Returns: True if valid format, False otherwise """
         if not address or not isinstance(address, str):
             return False
 
@@ -588,17 +493,7 @@ class X402PaymentTool(Tool):
         message: str = None,
         metadata: Optional[Dict] = None
     ) -> ToolResult:
-        """
-        Create a success response
-
-        Args:
-            data: Response data
-            message: Success message
-            metadata: Additional metadata
-
-        Returns:
-            ToolResult with success status
-        """
+        """ Create a success response Args: data: Response data message: Success message metadata: Additional metadata Returns: ToolResult with success status """
         output = {
             "success": True,
             "data": data
@@ -618,16 +513,7 @@ class X402PaymentTool(Tool):
         error: str,
         metadata: Optional[Dict] = None
     ) -> ToolResult:
-        """
-        Create a failure response
-
-        Args:
-            error: Error message
-            metadata: Additional context
-
-        Returns:
-            ToolResult with failure status
-        """
+        """ Create a failure response Args: error: Error message metadata: Additional context Returns: ToolResult with failure status """
         output = {
             "success": False,
             "error": error
