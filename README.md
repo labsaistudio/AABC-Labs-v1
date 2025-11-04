@@ -69,6 +69,10 @@ AABC Agent is an advanced AI agent framework that combines intelligent automatio
 - Support for SOL and SPL token payments
 - Integration with Agent payment workflow
 - Test service for payment flow validation
+- **User Wallet Signing Mode**: Users sign transactions with Phantom/Solflare
+- **Recoverable Architecture**: Automatic retry on blockhash expiration
+- **Post-mortem Verification**: Prevents false negatives after successful transactions
+- **Dual Payment Modes**: Custodial (backend signs) or User Wallet (user signs)
 
 ### Market Data Integration
 - CoinGecko Pro API integration
@@ -352,6 +356,77 @@ agent.run("Add liquidity to SOL-USDC pool")
 agent.run("Launch a token named TEST on Pump.fun")
 ```
 
+### X402 Payment Operations
+
+#### User Wallet Signing Mode
+```python
+# 1. Prepare payment (creates unsigned transaction)
+from backend.services.x402_api import prepare_payment
+
+payment = await prepare_payment(
+    service_url="https://api.example.com/service",
+    amount=0.001,
+    token="SOL",
+    recipient_address="RECIPIENT_WALLET",
+    user_wallet_address="USER_WALLET"
+)
+# Returns: payment_id, transaction_data, expires_at
+
+# 2. User signs with wallet (frontend)
+# signed_tx = await wallet.signTransaction(payment.transaction_data)
+
+# 3. Submit signed transaction
+from backend.services.x402_api import submit_signed_payment
+
+result = await submit_signed_payment(
+    payment_id=payment.payment_id,
+    signed_transaction=signed_tx
+)
+# Returns: success, signature, confirmation
+
+# Automatic retry on blockhash expiration (409 error)
+# Frontend automatically refreshes transaction and requests re-signing
+```
+
+#### Custodial Mode (Backend Signs)
+```python
+# Agent automatically handles payment
+agent.run("Pay 0.001 SOL to access https://api.example.com/service")
+```
+
+#### Key Features
+
+**Recoverable Architecture**:
+- Returns 409 (Conflict) for expired blockhash instead of 500 (Error)
+- Automatically reverts payment status to `pending_signature`
+- Frontend can retry with fresh blockhash (up to 2 times)
+- No manual intervention required
+
+**Post-mortem Verification**:
+- After transaction broadcast, checks on-chain status before returning error
+- Prevents false negatives when confirmation fails but transaction succeeds
+- Uses `getSignatureStatus()` to verify actual on-chain state
+
+**Defensive Programming**:
+- Safe field access with multiple fallbacks
+- Once transaction is confirmed, subsequent errors don't fail the flow
+- Optional verification skipped if data is missing (not failed)
+
+#### Database Migration
+
+Run the user wallet mode migration:
+```bash
+# Apply migration to add user_wallet fields
+psql -d your_database -f backend/supabase/migrations/20251105000000_x402_user_wallet_mode.sql
+```
+
+Adds:
+- `payment_mode` (custodial/user_wallet)
+- `user_wallet_address`
+- `unsigned_transaction`
+- `expires_at`
+- New statuses: `pending_signature`, `expired`
+
 ## Development
 
 ### Project Structure
@@ -406,7 +481,7 @@ This project is built on top of excellent open-source projects:
 
 - **[Solana Agent Kit](https://github.com/sendaifun/solana-agent-kit)** - Core Solana blockchain integration
 - **[Sendai Documentation](https://docs.sendai.fun/docs/v2/introduction)** - Comprehensive agent framework
-- **[Anthropic Claude](https://anthropic.com)** - AI language models
+- (https://github.com/solana-foundation/templates/tree/main/community/x402-template)
 
 ## License
 
