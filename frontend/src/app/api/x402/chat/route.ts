@@ -4,61 +4,66 @@ const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
 const TREASURY_WALLET = process.env.X402_TREASURY_WALLET || '4tJmBXXGHV6YfE5bKLpkPYPYqaJX5PfXWNbJJRF5VwvR'
 const FACILITATOR_URL = process.env.X402_FACILITATOR_URL || 'https://facilitator.payai.network'
 const PRICE_USDC = process.env.X402_PRICE_USDC || '10000' // 0.01 USDC (6 decimals)
+const PRICE_SOL_LAMPORTS = '10000' // 0.00001 SOL (for devnet testing)
 const IS_DEVNET = process.env.NEXT_PUBLIC_ENV_MODE !== 'PRODUCTION'
 
 export async function GET(request: NextRequest) {
   const paymentHeader = request.headers.get('X-Payment')
 
   if (!paymentHeader) {
+    const acceptsConfig: any = {
+      scheme: 'exact',
+      network: IS_DEVNET ? 'solana-devnet' : 'solana',
+      maxAmountRequired: IS_DEVNET ? PRICE_SOL_LAMPORTS : PRICE_USDC,
+      resource: request.url,
+      description: 'AABC Agent Chat Access - Advanced AI agent powered by Solana',
+      mimeType: 'application/json',
+      payTo: TREASURY_WALLET,
+      maxTimeoutSeconds: 3600,
+      outputSchema: {
+        input: {
+          type: 'http',
+          method: 'GET',
+          headerFields: {
+            'X-Payment': {
+              type: 'string',
+              required: true,
+              description: 'Payment proof signature from Solana transaction'
+            }
+          }
+        },
+        output: {
+          success: { type: 'boolean' },
+          message: { type: 'string' },
+          accessToken: { type: 'string' },
+          expiresIn: { type: 'number' },
+          chatUrl: { type: 'string' },
+          apiUrl: { type: 'string' }
+        }
+      },
+      extra: {
+        facilitator: FACILITATOR_URL,
+        discoverable: true,
+        service: 'AABC Labs',
+        features: [
+          'Advanced AI conversation',
+          'Solana blockchain operations',
+          'Token swaps and transfers',
+          'DeFi protocol interactions'
+        ],
+        priceUSD: '0.01',
+        paymentMethod: IS_DEVNET ? 'SOL' : 'USDC'
+      }
+    }
+
+    if (!IS_DEVNET) {
+      acceptsConfig.asset = USDC_MINT
+      acceptsConfig.extra.usdcDecimals = 6
+    }
+
     const x402Response = {
       x402Version: 1,
-      accepts: [
-        {
-          scheme: 'exact',
-          network: IS_DEVNET ? 'solana-devnet' : 'solana',
-          maxAmountRequired: PRICE_USDC,
-          resource: request.url,
-          description: 'AABC Agent Chat Access - Advanced AI agent powered by Solana',
-          mimeType: 'application/json',
-          payTo: TREASURY_WALLET,
-          maxTimeoutSeconds: 3600,
-          asset: USDC_MINT,
-          outputSchema: {
-            input: {
-              type: 'http',
-              method: 'GET',
-              headerFields: {
-                'X-Payment': {
-                  type: 'string',
-                  required: true,
-                  description: 'Payment proof signature from Solana transaction'
-                }
-              }
-            },
-            output: {
-              success: { type: 'boolean' },
-              message: { type: 'string' },
-              accessToken: { type: 'string' },
-              expiresIn: { type: 'number' },
-              chatUrl: { type: 'string' },
-              apiUrl: { type: 'string' }
-            }
-          },
-          extra: {
-            facilitator: FACILITATOR_URL,
-            discoverable: true,
-            service: 'AABC Labs',
-            features: [
-              'Advanced AI conversation',
-              'Solana blockchain operations',
-              'Token swaps and transfers',
-              'DeFi protocol interactions'
-            ],
-            usdcDecimals: 6,
-            priceUSD: '0.01'
-          }
-        }
-      ]
+      accepts: [acceptsConfig]
     }
 
     return new NextResponse(JSON.stringify(x402Response), {
