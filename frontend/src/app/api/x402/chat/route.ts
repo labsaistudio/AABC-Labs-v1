@@ -122,23 +122,59 @@ export async function OPTIONS(request: NextRequest) {
 
 async function verifyPayment(paymentProof: string): Promise<boolean> {
   try {
-    const response = await fetch(`${FACILITATOR_URL}/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        signature: paymentProof,
-        network: IS_DEVNET ? 'solana-devnet' : 'solana-mainnet'
-      })
+    const { Connection, PublicKey } = require('@solana/web3.js')
+
+    const RPC_URL = IS_DEVNET
+      ? 'https://api.devnet.solana.com'
+      : 'https://api.mainnet-beta.solana.com'
+
+    const connection = new Connection(RPC_URL, 'confirmed')
+
+    const transaction = await connection.getTransaction(paymentProof, {
+      maxSupportedTransactionVersion: 0,
+      commitment: 'confirmed'
     })
 
-    if (response.ok) {
-      const data = await response.json()
-      return data.verified === true
+    if (!transaction || !transaction.meta) {
+      console.error('Transaction not found or has no metadata')
+      return false
     }
 
+    if (transaction.meta.err) {
+      console.error('Transaction failed on-chain:', transaction.meta.err)
+      return false
+    }
+
+    const recipientPubkey = new PublicKey(TREASURY_WALLET)
+    const accountKeys = transaction.transaction.message.getAccountKeys()
+
+    const recipientIndex = accountKeys.staticAccountKeys.findIndex(
+      (key: any) => key.equals(recipientPubkey)
+    )
+
+    if (recipientIndex === -1) {
+      console.error('Recipient not found in transaction')
+      return false
+    }
+
+    const preBalance = transaction.meta.preBalances[recipientIndex]
+    const postBalance = transaction.meta.postBalances[recipientIndex]
+    const received = postBalance - preBalance
+
+    const expectedAmount = IS_DEVNET
+      ? parseInt(PRICE_SOL_LAMPORTS)
+      : parseInt(PRICE_USDC)
+
+    if (received >= expectedAmount) {
+      console.log(`Payment verified: ${received} lamports received (expected ${expectedAmount})`)
+      return true
+    }
+
+    console.error(`Insufficient payment: ${received} lamports (expected ${expectedAmount})`)
     return false
+
   } catch (error) {
-    console.error('Facilitator verification failed:', error)
+    console.error('On-chain verification failed:', error)
     return false
   }
 }
