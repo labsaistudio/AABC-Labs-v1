@@ -528,7 +528,7 @@ MIT License - See LICENSE file for details
 
 ## Contributors
 
-AABC Labs Team - 2024
+AABC Labs Team 
 
 ---
 
