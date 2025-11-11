@@ -17,6 +17,25 @@ AABC Agent is an advanced AI agent framework that combines intelligent automatio
 
 ## Core Blockchain Features
 
+### X402 Payment Protocol 💸
+
+Revolutionary HTTP 402-based blockchain micropayment system enabling AI agents to autonomously pay for resources.
+
+**Key Features:**
+- **Dual Payment Flows**: User wallet payment + AI agent autonomous payment
+- **Real Blockchain Transactions**: All payments verified on Solana mainnet
+- **Local-first Verification**: On-chain fallback when Facilitator unavailable
+- **Third-party Interoperability**: Works with any X402-compliant service
+- **Sub-cent Transactions**: USDC micropayments (e.g., $0.001 per API call)
+
+**Components:**
+- `frontend/x402-client.ts`: User wallet payment with Phantom integration
+- `frontend/x402-verify.ts`: Local chain verification with Facilitator fallback
+- `gateway/`: Node.js proxy for Agent autonomous payments
+- **7 X402-protected capability endpoints** (web_search, browser_automation, etc.)
+
+📖 **[Complete X402 Documentation →](./X402_README.md)**
+
 ### Token Operations
 - Deploy SPL tokens by Metaplex
 - Transfer assets
